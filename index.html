@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="KO">
+    <head>
+        <meta charset="UTF-8">
+        <title>Scroll이벤트를 활용한 원페이지_레이아웃 구현 - 현대자동차</title>
+        
+        <style>
+            *{margin:0px; padding:0px;}
+            ul, ol, li{list-style:none;}
+            a{text-decoration:none; color:#333;}
+            body{
+                font-family:"맑은 고딕", arial, sans-serif;
+                font-size:12px;
+                color:#333;
+            }
+            
+            /* 상단헤더 서식 */
+            header{width:100%; height:116px;}
+            #header_top h1{width:1200px; margin:0px auto;}
+            #header_top, nav{
+                height:58px;
+                background-image:url('./img/back.png');
+            }
+            .gnb{
+                width:1200px;
+                height:58px;
+                margin:0px auto;
+            }
+            .gnb > li{
+                float:left;
+                padding:0px 40px;
+                text-align:center;
+                line-height:58px;
+            }
+            .gnb > li > a{
+                color:#fff;
+                font-size:16px;
+                font-weight:bold;
+            }
+            .gnb > li > a:hover{
+                color:#ff0;
+            }
+            
+            /* 메뉴클릭시 해당 콘텐츠가 올라오면 해당 메뉴에 적용할 서식 */
+            .on{color:#ff0 !important;}
+            
+            /* 콘텐츠영역 서식 */
+            section{clear:both; overflow:hidden;}
+            section #visual{
+                width:100%; height:688px;
+                background-image:url('./img/bg_visual1.jpg');
+                background-repeat:no-repeat;
+                background-size:100%;
+                position:relative; /* 부모요소 기준 */
+            }
+            
+            #visual img{position:absolute; opacity:0;}
+            
+            /* 타이틀 이미지 위치 */
+            #visual img:first-child{top:15%; right:0px;}
+            
+            /* 자동차 이미지 위치 */
+            #visual img:last-child{left:0%; bottom:20%;}
+            
+            /* 비주얼 박스를 제외한 나머지 콘텐츠 서식 */
+            #cont .sub_con{
+                width:940px; height:740px;
+                margin:30px auto;
+                background-color:aqua;
+            }
+            
+            /* 푸터영역 서식 */
+            footer{
+                width:100%; height:80px; background-color:#222;
+            }
+            footer address{font-style:normal; color:#fff; text-align:center; line-height:80px;}
+            
+            /* top버튼 서식 */
+            footer > a{
+                background-color:#000; color:#fff;
+                font-size:20px; padding:12px 10px;
+                position:fixed; bottom:90px; right:50px;
+            }
+            
+            /* 헤더 내비게이션 추가 서식 */
+            .act{
+                position:fixed;
+                width:100%;
+                top:0px;
+                left:0px;
+                z-index:1000;
+            }
+            
+            .status{
+                background-color:#ff0; color:#f00;
+                position:fixed;
+                right:30px;
+                top:100px;
+                z-index:7777;
+                font-size:20px;
+            }
+        </style>
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        
+        <script>
+            $(document).ready(function(){
+              
+                //탑버튼 숨기기
+                $('footer a').hide();
+                
+                //비주얼 이미지 영역에 타이틀, 자동차 사진 보이게 하기
+                var title = $('#visual img:first-child');
+                var car = $('#visual img:last-child');
+                
+                car.animate({'left':'20%','opacity':'1'},500);
+                title.delay(500).animate({'right':'20%',opacity:'1'},500);
+                
+                //내비게이션 메뉴 클릭시 해당하는 컨텐츠 상단 top:58픽셀 위치에 올라오게 하기
+                $('.gnb > li').on({'click focus':function(){
+                    var num = $(this).index()+1; // 2, 3, 4, 5, 6, 7    0번은 비주얼박스 인덱스값이라서 필요없음.
+                    console.log(num);
+                    
+                    var con = $('section article').eq(num).offset().top; //각 콘텐츠 article에 top위치값을 변수에 저장.
+                    
+                    $('html, body').animate({scrollTop:con-58},500); //각 콘텐츠가 스크롤 높이 58픽셀까지 상단으로 애니메이션 되면서 올라감.
+                } 
+                });
+                
+                $(window).scroll(function(){
+                    var sPos = $(window).scrollTop();
+                    
+                    $('.status').text(sPos); //세로스크롤값 표시하기
+                    
+                    if(sPos >= 700){ //스크롤 높이가 700픽셀 이상이면
+                        $('footer a').fadeIn(); //탑버튼 나오게 하고
+                    }else{ //그렇지 않으면
+                        $('footer a').fadeOut(); //탑버튼 숨기게 한다.
+                    }
+                    
+                    if(sPos >= 58){ //만약에 세로스크롤 높이가 58픽셀 이상이면 
+                        $('nav').addClass('act'); //내비게이션에 서식을 추가하여 고정시키고
+                    }else{ //그렇지 않다면 (화면울 위로 올리면)
+                        $('nav').removeClass('act'); //내비게이션 서식을 제거하여 다시 원래 위치로 돌림.
+                    }
+                    
+                    //각 해당하는 콘텐츠가 상단으로 올라오면 그 메뉴에 서식 적용하기1
+   /*                 if(sPos>=775 && sPos<1400){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li:first-child a').addClass('on'); //첫번째 메뉴 서식 적용
+                    }else if(sPos>=1545 && sPos<2200){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li:nth-child(2) a').addClass('on'); //두번째 메뉴 서식 적용
+                    }else if(sPos>=2316 && sPos<2900){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li:nth-child(3) a').addClass('on'); //세번째 메뉴 서식 적용
+                    }else if(sPos>=3085 && sPos<3700){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li:nth-child(4) a').addClass('on'); //네번째 메뉴 서식 적용
+                    }else if(sPos>=3856 && sPos<4500){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li:nth-child(5) a').addClass('on'); //다섯번째 메뉴 서식 적용
+                    }else if(sPos>=4625 && sPos<5200){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li:nth-child(6) a').addClass('on'); //여섯번째 메뉴 서식 적용
+                    }else if(sPos>=5396){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li:last-child) a').addClass('on'); //일곱번째 메뉴 서식 적용
+                    }else{
+                        $('.gnb a').removeClass('on'); //이도저도 아니면 서식 제거
+                    } */
+                    
+                    
+                    //각 해당하는 콘텐츠가 상단으로 올라오면 그 메뉴에 서식 적용하기2
+                    var h = $('section article').height(); //각 콘텐츠별 높이값을 구하여 변수에 저장
+                    
+                    if(sPos>=h*1 && sPos<h*2){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li').eq(0).find('a').addClass('on'); //첫번째 메뉴 서식 적용
+                    }else if(sPos>=h*2 && sPos<h*3){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li').eq(1).find('a').addClass('on'); //두번째 메뉴 서식 적용
+                    }else if(sPos>=h*3 && sPos<h*4){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li').eq(2).find('a').addClass('on'); //세번째 메뉴 서식 적용
+                    }else if(sPos>=h*4 && sPos<h*5){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li').eq(3).find('a').addClass('on'); //네번째 메뉴 서식 적용
+                    }else if(sPos>=h*5 && sPos<h*6){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li').eq(4).find('a').addClass('on'); //다섯번째 메뉴 서식 적용
+                    }else if(sPos>=h*6 && sPos<h*7){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li').eq(5).find('a').addClass('on'); //여섯번째 메뉴 서식 적용
+                    }else if(sPos>=h*7){
+                        $('.gnb a').removeClass('on'); //기존에 적용된 서식이 있으면 제거하고
+                        $('.gnb > li').eq(6).find('a').addClass('on'); //일곱번째 메뉴 서식 적용
+                    }else{
+                        $('.gnb a').removeClass('on'); //이도저도 아니면 서식 제거
+                    }
+                    
+                    
+                });
+                
+                $('footer a').click(function(){ //탑버튼 클릭시
+                      $('body, html').animate({scrollTop:'0px'},300); //화면상단으로 올리기
+                        return false; //새로고침 방지
+                });
+                
+            });
+            
+        </script>
+    
+    </head>
+    <body>
+        <!-- 스크롤 높이 표시 영역 -->
+        <span class="status"></span>
+        
+        <!-- 상단헤더영역 시작 -->
+        <header>
+            <div id="header_top">
+                <h1>
+                    <a href="index.html" title="메인페이지로 바로가기">
+                        <img src="./img/header_logo.png" alt="상단로고"></a>
+                </h1>
+            </div>
+            <nav>
+                <!-- ul.gnb>li*7>a[href=# title=] -->
+                <ul class="gnb">
+                    <li><a href="#" title="런칭cf">런칭CF</a></li>
+                    <li><a href="#" title="하이브리드">하이브리드</a></li>
+                    <li><a href="#" title="design">DESIGN</a></li>
+                    <li><a href="#" title="convenience">CONVENIENCE</a></li>
+                    <li><a href="#" title="technology">TECHNOLOGY</a></li>
+                    <li><a href="#" title="safety">SAFETY</a></li>
+                    <li><a href="#" title="contact us">CONTACT US</a></li>
+                </ul>
+            </nav>
+        </header>
+        
+        <!-- 콘텐츠영역 시작 -->
+        <section id="cont">
+            <article id="visual">
+                <img src="./img/txt_visual1.png" alt="타이틀이미지">
+                <img src="./img/visual.png" alt="자동차사진">
+            </article>
+            
+            <article class="sub_con" id="cf"><img src="./img/content01.png" alt=""></article>
+            <article class="sub_con" id="hybrid"><img src="./img/content02.png" alt=""></article>
+            <article class="sub_con" id="design"><img src="./img/content03.png" alt=""></article>
+            <article class="sub_con" id="con"><img src="./img/content04.png" alt=""></article>
+            <article class="sub_con" id="tech"><img src="./img/content05.png" alt=""></article>
+            <article class="sub_con" id="safe"><img src="./img/content06.png" alt=""></article>
+            <article class="sub_con" id="contact"></article>
+        </section>
+        
+        <!-- 푸터영역 시작 -->
+        <footer>
+            <a href="#" title="페이지 상단으로 바로가기">Top</a>
+            <address>Copyright&copy;2020 Hyundai Moters allrights reserved.</address>
+        </footer>
+        
+    </body>
+</html>
